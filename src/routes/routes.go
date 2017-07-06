@@ -1,10 +1,6 @@
 package routes
 
-import (
-	"fmt"
-
-	"../config"
-)
+import "../config"
 
 // Operations
 const GiveMeAServer string = "givemeaserver"
@@ -21,16 +17,16 @@ type RouterResponse struct {
 }
 
 func Router(c chan RouterRequest, reglas []config.Regla) {
-	// for {
-	// 	msg := <-c
-	//
-	// 	switch msg.operation {
-	// 	case GiveMeAServer:
-	// 		giveAServer(msg)
-	// 	}
-	// }
+	servers := initColas(reglas)
 
-	fmt.Println(initColas(reglas))
+	for {
+		msg := <-c
+
+		switch msg.operation {
+		case GiveMeAServer:
+			giveAServer(msg, servers)
+		}
+	}
 }
 
 // Private
@@ -40,8 +36,10 @@ type serversLists struct {
 	unavailableServers chan string
 }
 
-func initColas(reglas []config.Regla) map[string]serversLists {
-	serversQueues := make(map[string]serversLists)
+type serversQueuesMap map[string]serversLists
+
+func initColas(reglas []config.Regla) serversQueuesMap {
+	serversQueues := make(serversQueuesMap)
 
 	for _, rule := range reglas {
 		cSer := make(chan string, 100)
@@ -57,6 +55,8 @@ func initColas(reglas []config.Regla) map[string]serversLists {
 	return serversQueues
 }
 
-func giveAServer(msg RouterRequest) {
-
+func giveAServer(msg RouterRequest, servers serversQueuesMap) string {
+	// Agregar de nuevo el server a la lista. Considerar el caso de que el channel
+	// este vacio (poner un timer)
+	return <-servers[msg.path].servers
 }
