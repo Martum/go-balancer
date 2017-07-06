@@ -7,13 +7,14 @@ const GiveMeAServer string = "givemeaserver"
 
 type RouterRequest struct {
 	operation string
-	path      string
-	method    string
+	path      string // /foo/bar
+	method    string // GET, POST, PUT, PATCH, DELETE
 	c         *chan RouterResponse
 }
 
 type RouterResponse struct {
-	zarasa string
+	routeRequest bool
+	server       string
 }
 
 func Router(c chan RouterRequest, reglas []config.Regla) {
@@ -55,8 +56,9 @@ func initColas(reglas []config.Regla) serversQueuesMap {
 	return serversQueues
 }
 
-func giveAServer(msg RouterRequest, servers serversQueuesMap) string {
+func giveAServer(msg RouterRequest, servers serversQueuesMap) {
 	// Agregar de nuevo el server a la lista. Considerar el caso de que el channel
 	// este vacio (poner un timer)
-	return <-servers[msg.path].servers
+	rsp := RouterResponse{routeRequest: true, server: <-servers[msg.path].servers}
+	*msg.c <- rsp
 }
