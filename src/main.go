@@ -3,40 +3,26 @@ package main
 import (
 	"log"
 	"net/http"
-	"./routes"
-	"os"
-	"encoding/json"
+
 	"fmt"
+
+	"./config"
+	"./routes"
 )
 
-type Regla struct {
-	Ruta string
-	Servers []string
-}
-
-type Configuration struct {
-	Puerto int
-	EsperaRecuperoServer int
-	ReglasRuteo []Regla
-}
-
 func main() {
-	configuration := loadConfig()
+	configuration := config.LoadConfig()
+
+	routerChan := make(chan routes.RouterRequest)
+	go routes.Router(routerChan, configuration.ReglasRuteo)
 
 	fmt.Println(configuration)
 
-	http.HandleFunc("/", routes.HandleIndex)
+	http.HandleFunc("/", handleIndex)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func loadConfig() (Configuration){
-	file, _ := os.Open("./config.json")
-	decoder := json.NewDecoder(file)
-	configuration := Configuration{}
-	err := decoder.Decode(&configuration)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	return configuration
+func handleIndex(res http.ResponseWriter, req *http.Request) {
+	fmt.Println("Request recibido")
 }
