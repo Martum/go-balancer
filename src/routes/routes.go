@@ -1,6 +1,10 @@
 package routes
 
-import "../config"
+import (
+	"regexp"
+
+	"../config"
+)
 
 // Operations
 const GiveMeAServer string = "givemeaserver"
@@ -18,7 +22,7 @@ type RouterResponse struct {
 }
 
 func Router(c chan RouterRequest, reglas []config.Regla) {
-	servers := initColas(reglas)
+	servers := initHandlers(reglas)
 
 	for {
 		msg := <-c
@@ -32,33 +36,56 @@ func Router(c chan RouterRequest, reglas []config.Regla) {
 
 // Private
 
-type serversLists struct {
-	servers            chan string
-	unavailableServers chan string
+// type serversQueuesMap map[string]serversLists
+
+// func initHandlers(reglas []config.Regla) serversQueuesMap {
+// 	serversQueues := make(serversQueuesMap)
+//
+// 	for _, rule := range reglas {
+// 		cSer := make(chan string, 100)
+// 		cUnSer := make(chan string, 100)
+//
+// 		for _, server := range rule.Servers {
+// 			cSer <- server
+// 		}
+//
+// 		serversQueues[rule.Ruta] = serversLists{servers: cSer, unavailableServers: cUnSer}
+// 	}
+//
+// 	return serversQueues
+// }
+
+type serversHandler struct {
+	pathRegEx *regexp.Regexp
+	channel   chan string
 }
 
-type serversQueuesMap map[string]serversLists
+func initHandlers(reglas []config.Regla) []serversHandler {
+	handlersList := make([]serversHandler, len(reglas))
 
-func initColas(reglas []config.Regla) serversQueuesMap {
-	serversQueues := make(serversQueuesMap)
-
+	var i = 0
+	var defaultHandler serversHandler
 	for _, rule := range reglas {
-		cSer := make(chan string, 100)
-		cUnSer := make(chan string, 100)
+		if rule.Ruta == "*" {
+			r, _ := regexp.Compile(".*")
+			defaultHandler = serversHandler{pathRegEx: r, channel: make(chan string, 100)}
+		} else {
+			r, _ := regexp.Compile("^" + rule.Ruta + ".*")
+			handlersList[i] = serversHandler{pathRegEx: r, channel: make(chan string, 100)}
 
-		for _, server := range rule.Servers {
-			cSer <- server
+			i = i + 1
 		}
-
-		serversQueues[rule.Ruta] = serversLists{servers: cSer, unavailableServers: cUnSer}
 	}
+	handlersList[i] = defaultHandler
 
-	return serversQueues
+	return handlersList
 }
 
-func giveAServer(msg RouterRequest, servers serversQueuesMap) {
+func giveAServer(msg RouterRequest, servers []serversHandler) {
 	// Agregar de nuevo el server a la lista. Considerar el caso de que el channel
-	// este vacio (poner un timer)
-	rsp := RouterResponse{RouteRequest: true, Server: <-servers[msg.Path].servers}
-	*msg.C <- rsp
+	// este vacio (usar select para esto)
+	// Handlear el caso de que la ruta no exista (cae en el default *)
+	// rsp := RouterResponse{routeRequest: true, server: <-servers[msg.path].servers}
+	// *msg.c <- rsp
+	for _, server :=
 }
