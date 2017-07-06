@@ -1,10 +1,17 @@
 package routes
 
 import (
-	"io"
-	"net/http"
+	"../config"
 )
 
-func HandleIndex(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "hello, world\n")
+type RouterRequest struct {
+	zarasa string
+}
+
+type RouterResponse struct {
+	zarasa string
+}
+
+func Router(c chan RouterRequest, reglas []config.Regla) {
+
 }
