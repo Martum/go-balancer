@@ -6,15 +6,15 @@ import "../config"
 const GiveMeAServer string = "givemeaserver"
 
 type RouterRequest struct {
-	operation string
-	path      string // /foo/bar
-	method    string // GET, POST, PUT, PATCH, DELETE
-	c         *chan RouterResponse
+	Operation string
+	Path      string // /foo/bar
+	Method    string // GET, POST, PUT, PATCH, DELETE
+	C         *chan RouterResponse
 }
 
 type RouterResponse struct {
-	routeRequest bool
-	server       string
+	RouteRequest bool
+	Server       string
 }
 
 func Router(c chan RouterRequest, reglas []config.Regla) {
@@ -23,7 +23,7 @@ func Router(c chan RouterRequest, reglas []config.Regla) {
 	for {
 		msg := <-c
 
-		switch msg.operation {
+		switch msg.Operation {
 		case GiveMeAServer:
 			giveAServer(msg, servers)
 		}
@@ -59,6 +59,6 @@ func initColas(reglas []config.Regla) serversQueuesMap {
 func giveAServer(msg RouterRequest, servers serversQueuesMap) {
 	// Agregar de nuevo el server a la lista. Considerar el caso de que el channel
 	// este vacio (poner un timer)
-	rsp := RouterResponse{routeRequest: true, server: <-servers[msg.path].servers}
-	*msg.c <- rsp
+	rsp := RouterResponse{RouteRequest: true, Server: <-servers[msg.Path].servers}
+	*msg.C <- rsp
 }
