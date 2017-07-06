@@ -2,18 +2,22 @@ package routes
 
 import (
 	"regexp"
+	"time"
 
 	"../config"
 )
 
 // Operations
 const GiveMeAServer string = "givemeaserver"
+const ServerDown string = "serverdown"
+const ServerUp string = "serverup"
 
 type RouterRequest struct {
 	Operation string
 	Path      string // /foo/bar
 	Method    string // GET, POST, PUT, PATCH, DELETE
 	C         *chan RouterResponse
+	Meta      string
 }
 
 type RouterResponse struct {
@@ -21,7 +25,7 @@ type RouterResponse struct {
 	Server       string
 }
 
-func Router(c chan RouterRequest, reglas []config.Regla) {
+func Router(c chan RouterRequest, reglas []config.Regla, secondsToUp int) {
 	servers := initHandlers(reglas)
 
 	for {
@@ -30,30 +34,16 @@ func Router(c chan RouterRequest, reglas []config.Regla) {
 		switch msg.Operation {
 		case GiveMeAServer:
 			giveAServer(msg, servers)
+		case ServerDown:
+			notifyServers(msg, servers)
+			go notifyServerUp(secondsToUp, c, msg.Meta)
+		case ServerUp:
+			notifyServers(msg, servers)
 		}
 	}
 }
 
 // Private
-
-// type serversQueuesMap map[string]serversLists
-
-// func initHandlers(reglas []config.Regla) serversQueuesMap {
-// 	serversQueues := make(serversQueuesMap)
-//
-// 	for _, rule := range reglas {
-// 		cSer := make(chan string, 100)
-// 		cUnSer := make(chan string, 100)
-//
-// 		for _, server := range rule.Servers {
-// 			cSer <- server
-// 		}
-//
-// 		serversQueues[rule.Ruta] = serversLists{servers: cSer, unavailableServers: cUnSer}
-// 	}
-//
-// 	return serversQueues
-// }
 
 type serversHandler struct {
 	pathRegEx *regexp.Regexp
@@ -89,4 +79,17 @@ func giveAServer(msg RouterRequest, servers []serversHandler) {
 			break
 		}
 	}
+}
+
+// Envia un mensaje a todos los serversHandlers
+func notifyServers(msg RouterRequest, servers []serversHandler) {
+	for _, server := range servers {
+		server.channel <- msg
+	}
+}
+
+// Me envia un mensaje para restaurar un server que habia sido dado de baja
+func notifyServerUp(seconds int, c chan RouterRequest, server string) {
+	time.Sleep(100 * time.Second)
+	c <- RouterRequest{Operation: ServerUp, Meta: server}
 }
