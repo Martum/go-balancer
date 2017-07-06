@@ -57,7 +57,7 @@ func Router(c chan RouterRequest, reglas []config.Regla) {
 
 type serversHandler struct {
 	pathRegEx *regexp.Regexp
-	channel   chan string
+	channel   chan RouterRequest
 }
 
 func initHandlers(reglas []config.Regla) []serversHandler {
@@ -68,10 +68,10 @@ func initHandlers(reglas []config.Regla) []serversHandler {
 	for _, rule := range reglas {
 		if rule.Ruta == "*" {
 			r, _ := regexp.Compile(".*")
-			defaultHandler = serversHandler{pathRegEx: r, channel: make(chan string, 100)}
+			defaultHandler = serversHandler{pathRegEx: r, channel: make(chan RouterRequest, 1000)}
 		} else {
 			r, _ := regexp.Compile("^" + rule.Ruta + ".*")
-			handlersList[i] = serversHandler{pathRegEx: r, channel: make(chan string, 100)}
+			handlersList[i] = serversHandler{pathRegEx: r, channel: make(chan RouterRequest, 1000)}
 
 			i = i + 1
 		}
@@ -82,10 +82,11 @@ func initHandlers(reglas []config.Regla) []serversHandler {
 }
 
 func giveAServer(msg RouterRequest, servers []serversHandler) {
-	// Agregar de nuevo el server a la lista. Considerar el caso de que el channel
-	// este vacio (usar select para esto)
-	// Handlear el caso de que la ruta no exista (cae en el default *)
-	// rsp := RouterResponse{routeRequest: true, server: <-servers[msg.path].servers}
-	// *msg.c <- rsp
-	for _, server :=
+	// Se despacha el pedido al primer serverHandler que responda al path solicitado
+	for _, server := range servers {
+		if server.pathRegEx.MatchString(msg.Path) {
+			server.channel <- msg
+			break
+		}
+	}
 }
