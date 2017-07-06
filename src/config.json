@@ -1,0 +1,18 @@
+{
+  "puerto": 8080,
+  "esperaRecuperoServer": 120,
+  "reglasRuteo": [
+    {
+      "ruta": "/foo",
+      "servers": ["localhost:8081", "localhost:8082"]
+    },
+    {
+      "ruta": "/bar",
+      "servers": ["localhost:8081", "localhost:8085"]
+    },
+    {
+      "ruta": "*",
+      "servers": ["localhost:8082", "localhost:8083", "localhost:8084"]
+    }
+  ]
+}
