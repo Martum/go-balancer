@@ -15,7 +15,7 @@ import (
 func main() {
 	configuration := config.LoadConfig()
 
-	routerChan := make(chan routes.RouterRequest)
+	routerChan := make(chan routes.RouterRequest, 500)
 	go routes.Router(routerChan, configuration.ReglasRuteo)
 
 	fmt.Println(configuration)
