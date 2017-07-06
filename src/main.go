@@ -12,10 +12,11 @@ import (
 	"time"
 )
 
+var routerChan = make(chan routes.RouterRequest, 500)
+
 func main() {
 	configuration := config.LoadConfig()
 
-	routerChan := make(chan routes.RouterRequest, 500)
 	go routes.Router(routerChan, configuration.ReglasRuteo)
 
 	fmt.Println(configuration)
@@ -30,7 +31,9 @@ func handleIndex(res http.ResponseWriter, req *http.Request) {
 		Timeout: time.Second * 10,
 	}
 
-	req, err := http.NewRequest(req.Method, nextServer(req), req.Body)
+	req, err := http.NewRequest(req.Method, nextUrl(req), req.Body)
+
+	log.Println(req)
 
 	if err != nil {
 		log.Fatal(err)
@@ -51,6 +54,15 @@ func handleIndex(res http.ResponseWriter, req *http.Request) {
 	res.Write(bodyBytes)
 }
 
-func nextServer(req *http.Request) string {
-	return "http://localhost:8081"
+func nextUrl(req *http.Request) string {
+	path := "/" + req.URL.Path[1:]
+	miChannel := make(chan routes.RouterResponse)
+
+	request := routes.RouterRequest{Operation: routes.GiveMeAServer, Path: path, Method: req.Method, C: &miChannel}
+
+	routerChan <- request
+
+	response := <- miChannel
+
+	return "http://" + response.Server + path
 }
