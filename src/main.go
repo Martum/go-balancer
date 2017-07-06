@@ -6,10 +6,11 @@ import (
 
 	"fmt"
 
-	"./config"
-	"./routes"
 	"io/ioutil"
 	"time"
+
+	"./config"
+	"./routes"
 )
 
 var routerChan = make(chan routes.RouterRequest, 500)
@@ -17,7 +18,7 @@ var routerChan = make(chan routes.RouterRequest, 500)
 func main() {
 	configuration := config.LoadConfig()
 
-	go routes.Router(routerChan, configuration.ReglasRuteo)
+	go routes.Router(routerChan, configuration.ReglasRuteo, configuration.EsperaRecuperoServer)
 
 	fmt.Println(configuration)
 
@@ -62,7 +63,7 @@ func nextUrl(req *http.Request) string {
 
 	routerChan <- request
 
-	response := <- miChannel
+	response := <-miChannel
 
 	return "http://" + response.Server + path
 }

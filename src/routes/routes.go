@@ -50,6 +50,7 @@ type serversHandler struct {
 	channel   chan RouterRequest
 }
 
+// Inicializa los serversHandlers
 func initHandlers(reglas []config.Regla) []serversHandler {
 	handlersList := make([]serversHandler, len(reglas))
 
@@ -71,8 +72,8 @@ func initHandlers(reglas []config.Regla) []serversHandler {
 	return handlersList
 }
 
+// Se despacha el pedido al primer serverHandler que responda al path solicitado
 func giveAServer(msg RouterRequest, servers []serversHandler) {
-	// Se despacha el pedido al primer serverHandler que responda al path solicitado
 	for _, server := range servers {
 		if server.pathRegEx.MatchString(msg.Path) {
 			server.channel <- msg
