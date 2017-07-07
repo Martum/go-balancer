@@ -1,15 +1,22 @@
 package routes
 
-import "../config"
+import (
+	"regexp"
+	"time"
+
+	"../config"
+)
 
 // Operations
 const GiveMeAServer string = "givemeaserver"
+const ServerDown string = "serverdown"
+const ServerUp string = "serverup"
 
 type RouterRequest struct {
 	Operation string
 	Path      string // /foo/bar
-	Method    string // GET, POST, PUT, PATCH, DELETE
 	C         *chan RouterResponse
+	Meta      string
 }
 
 type RouterResponse struct {
@@ -17,8 +24,8 @@ type RouterResponse struct {
 	Server       string
 }
 
-func Router(c chan RouterRequest, reglas []config.Regla) {
-	servers := initColas(reglas)
+func Router(c chan RouterRequest, reglas []config.Regla, secondsToUp int) {
+	servers := initHandlers(reglas)
 
 	for {
 		msg := <-c
@@ -26,39 +33,69 @@ func Router(c chan RouterRequest, reglas []config.Regla) {
 		switch msg.Operation {
 		case GiveMeAServer:
 			giveAServer(msg, servers)
+		case ServerDown:
+			notifyServers(msg, servers)
+			go notifyServerUp(secondsToUp, c, msg.Meta)
+		case ServerUp:
+			notifyServers(msg, servers)
 		}
 	}
 }
 
 // Private
 
-type serversLists struct {
-	servers            chan string
-	unavailableServers chan string
+type serversHandler struct {
+	pathRegEx *regexp.Regexp
+	channel   chan RouterRequest
 }
 
-type serversQueuesMap map[string]serversLists
+// Inicializa los serversHandlers
+func initHandlers(reglas []config.Regla) []serversHandler {
+	handlersList := make([]serversHandler, len(reglas))
 
-func initColas(reglas []config.Regla) serversQueuesMap {
-	serversQueues := make(serversQueuesMap)
-
+	var i = 0
+	var defaultHandler serversHandler
 	for _, rule := range reglas {
-		cSer := make(chan string, 100)
-		cUnSer := make(chan string, 100)
+		if rule.Ruta == "*" {
+			r, _ := regexp.Compile(".*")
+			channel := make(chan RouterRequest, 1000)
 
-		for _, server := range rule.Servers {
-			cSer <- server
+			go ServersHandler(channel, rule.Servers)
+			defaultHandler = serversHandler{pathRegEx: r, channel: channel}
+		} else {
+			r, _ := regexp.Compile("^" + rule.Ruta + ".*")
+			channel := make(chan RouterRequest, 1000)
+
+			go ServersHandler(channel, rule.Servers)
+			handlersList[i] = serversHandler{pathRegEx: r, channel: channel}
+
+			i = i + 1
 		}
-
-		serversQueues[rule.Ruta] = serversLists{servers: cSer, unavailableServers: cUnSer}
 	}
+	handlersList[i] = defaultHandler
 
-	return serversQueues
+	return handlersList
 }
 
-func giveAServer(msg RouterRequest, servers serversQueuesMap) {
-	// Agregar de nuevo el server a la lista. Considerar el caso de que el channel
-	// este vacio (poner un timer)
-	rsp := RouterResponse{RouteRequest: true, Server: <-servers[msg.Path].servers}
-	*msg.C <- rsp
+// Se despacha el pedido al primer serverHandler que responda al path solicitado
+func giveAServer(msg RouterRequest, servers []serversHandler) {
+	for _, server := range servers {
+		if server.pathRegEx.MatchString(msg.Path) {
+			server.channel <- msg
+			break
+		}
+	}
+}
+
+// Envia un mensaje a todos los serversHandlers
+func notifyServers(msg RouterRequest, servers []serversHandler) {
+	for _, server := range servers {
+		server.channel <- msg
+	}
+}
+
+// Me envia un mensaje para restaurar un server que habia sido dado de baja
+func notifyServerUp(seconds int, c chan RouterRequest, server string) {
+	time.Sleep(100 * time.Second)
+	c <- RouterRequest{Operation: ServerUp, Meta: server}
 }
