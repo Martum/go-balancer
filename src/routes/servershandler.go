@@ -1,5 +1,5 @@
 package routes
 
-func ServersHandler() {
+func ServersHandler(c chan RouterRequest, servers []string) {
 
 }

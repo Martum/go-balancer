@@ -15,7 +15,6 @@ const ServerUp string = "serverup"
 type RouterRequest struct {
 	Operation string
 	Path      string // /foo/bar
-	Method    string // GET, POST, PUT, PATCH, DELETE
 	C         *chan RouterResponse
 	Meta      string
 }
@@ -59,10 +58,16 @@ func initHandlers(reglas []config.Regla) []serversHandler {
 	for _, rule := range reglas {
 		if rule.Ruta == "*" {
 			r, _ := regexp.Compile(".*")
-			defaultHandler = serversHandler{pathRegEx: r, channel: make(chan RouterRequest, 1000)}
+			channel := make(chan RouterRequest, 1000)
+
+			go ServersHandler(channel, rule.Servers)
+			defaultHandler = serversHandler{pathRegEx: r, channel: channel}
 		} else {
 			r, _ := regexp.Compile("^" + rule.Ruta + ".*")
-			handlersList[i] = serversHandler{pathRegEx: r, channel: make(chan RouterRequest, 1000)}
+			channel := make(chan RouterRequest, 1000)
+
+			go ServersHandler(channel, rule.Servers)
+			handlersList[i] = serversHandler{pathRegEx: r, channel: channel}
 
 			i = i + 1
 		}
