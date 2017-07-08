@@ -47,9 +47,9 @@ func forwardRequest(req *http.Request) (*http.Response, int){
 
 		if server.RouteRequest {
 			request, _ := http.NewRequest(req.Method, makeUrl(server.Server, req.URL.Path), req.Body)
-			response, _ := client.Do(request)
+			response, err := client.Do(request)
 
-			if response.StatusCode == http.StatusRequestTimeout {
+			if err != nil || response.StatusCode == http.StatusRequestTimeout {
 				notifyServerDown(request.URL.Path, server.Server)
 
 				if req.Method != http.MethodGet {
