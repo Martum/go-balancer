@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"time"
 	"strconv"
+	"net/url"
 )
 
 var routerChan = make(chan routes.RouterRequest, 500)
@@ -46,7 +47,7 @@ func forwardRequest(req *http.Request) (*http.Response, int){
 		server := nextServer(req)
 
 		if server.RouteRequest {
-			request, _ := http.NewRequest(req.Method, makeUrl(server.Server, req.URL.Path), req.Body)
+			request, _ := http.NewRequest(req.Method, makeUrl(server.Server, req.URL), req.Body)
 			response, err := client.Do(request)
 
 			if err != nil || response.StatusCode == http.StatusRequestTimeout {
@@ -76,8 +77,8 @@ func nextServer(req *http.Request) routes.RouterResponse {
 	return response
 }
 
-func makeUrl(server string, path string) string {
-	return "http://" + server + path
+func makeUrl(server string, url *url.URL) string {
+	return "http://" + server + url.RequestURI()
 }
 
 func notifyServerDown(path string, server string) {
