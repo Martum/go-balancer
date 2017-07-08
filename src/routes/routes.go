@@ -96,6 +96,6 @@ func notifyServers(msg RouterRequest, servers []serversHandler) {
 
 // Me envia un mensaje para restaurar un server que habia sido dado de baja
 func notifyServerUp(seconds int, c chan RouterRequest, server string) {
-	time.Sleep(100 * time.Second)
+	time.Sleep(time.Duration(seconds) * time.Second)
 	c <- RouterRequest{Operation: ServerUp, Meta: server}
 }
