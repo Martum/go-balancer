@@ -1,10 +1,10 @@
 {
   "puerto": 8080,
-  "esperaRecuperoServer": 120,
+  "esperaRecuperoServer": 10,
   "reglasRuteo": [
     {
       "ruta": "/foo",
-      "servers": ["localhost:8081"]
+      "servers": ["localhost:8081", "localhost:8082"]
     },
     {
       "ruta": "/bar",

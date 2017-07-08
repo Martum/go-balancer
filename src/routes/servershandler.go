@@ -49,7 +49,7 @@ func addServer(serverUp string, availableServers chan string, unavailableServers
 // Sacamos un server de from y lo pasamos a to, los demas servers los volvemos
 // a agregar a from
 func swapServer(swappingServer string, from chan string, to chan string) {
-	var servers []string
+	var servers [50]string
 	i := 0
 
 	for {
@@ -71,7 +71,7 @@ func swapServer(swappingServer string, from chan string, to chan string) {
 	}
 }
 
-func listToChan(list []string, i int, c chan string) {
+func listToChan(list [50]string, i int, c chan string) {
 	for n := 0; n < i; n++ {
 		c <- list[n]
 	}
