@@ -4,15 +4,15 @@ import (
 	"log"
 	"net/http"
 	"io"
-	"fmt"
 	"math/rand"
 	"strconv"
+	"os"
 )
 
 func main() {
 	http.HandleFunc("/foo", handleIndex)
 
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	log.Fatal(http.ListenAndServe(":" + os.Args[1], nil))
 }
 
 func handleIndex(res http.ResponseWriter, req *http.Request) {

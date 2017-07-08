@@ -12,7 +12,7 @@ import (
 	"net/url"
 )
 
-var routerChan = make(chan routes.RouterRequest, 500)
+var routerChan = make(chan routes.RouterRequest, 1000000)
 
 func main() {
 	configuration := config.LoadConfig()
