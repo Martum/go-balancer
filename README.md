@@ -20,4 +20,4 @@ Nota: el `config.json` a usar debe estar en `/src`
 
 ## Benchmark
 
-Los benchmarks se encuentra en la carpeta `benchmark` y los resultados en el archivo `resultados.md`
+Los benchmarks se encuentra en la carpeta `benchmark` y los resultados en el archivo `README.md`

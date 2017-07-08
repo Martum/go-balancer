@@ -1,7 +1,10 @@
 # Caso 1
 
+Levantamos un servidor test en el puerto 8081
+
 ## Sin proxy
 
+```
 ab -c 100 -n 100000 'http://127.0.0.1:8081/foo?total=100'
 This is ApacheBench, Version 2.3 <$Revision: 1528965 $>
 Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
@@ -56,10 +59,11 @@ Percentage of the requests served within a certain time (ms)
   98%      7
   99%      9
  100%     18 (longest request)
-
+```
 
 ## Nginx
 
+```
 ab -c 100 -n 100000 'http://127.0.0.1:8001/foo?total=100'
 This is ApacheBench, Version 2.3 <$Revision: 1528965 $>
 Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
@@ -114,9 +118,11 @@ Percentage of the requests served within a certain time (ms)
   98%     11
   99%     12
  100%     18 (longest request)
+```
 
 ## Go-Balancer
 
+```
 ab -c 100 -n 100000 'http://127.0.0.1:8080/foo?total=100'
 This is ApacheBench, Version 2.3 <$Revision: 1528965 $>
 Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
@@ -171,13 +177,16 @@ Percentage of the requests served within a certain time (ms)
   98%     28
   99%     34
  100%    208 (longest request)
+```
+
 
 # Caso 2
 
-Levantamos 5 servidores tests en los puertos 8081, 8082, 8083, 8084, 8085
+Levantamos 5 servidores test en los puertos 8081, 8082, 8083, 8084, 8085
 
 ## Nginx
 
+```
 ab -c 100 -n 100000 'http://127.0.0.1:8001/foo?total=100'
 This is ApacheBench, Version 2.3 <$Revision: 1528965 $>
 Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
@@ -232,9 +241,11 @@ Percentage of the requests served within a certain time (ms)
   98%     11
   99%     13
  100%     39 (longest request)
+```
 
 ## Go-Balancer
 
+```
 ab -c 100 -n 100000 'http://127.0.0.1:8080/foo?total=100'
 This is ApacheBench, Version 2.3 <$Revision: 1528965 $>
 Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
@@ -289,13 +300,16 @@ Percentage of the requests served within a certain time (ms)
   98%     32
   99%     38
  100%    138 (longest request)
+```
+
 
 # Caso 3
 
-Levantamos 2 servidores tests en los puertos 8081, 8082
+Levantamos 2 servidores test en los puertos 8081, 8082
 
 ## Nginx
 
+```
 ab -c 100 -n 100000 'http://127.0.0.1:8001/foo?total=100'
 This is ApacheBench, Version 2.3 <$Revision: 1528965 $>
 Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
@@ -350,9 +364,11 @@ Percentage of the requests served within a certain time (ms)
   98%     11
   99%     12
  100%     28 (longest request)
+```
 
 ## Go-Balancer
 
+```
 ab -c 100 -n 100000 'http://127.0.0.1:8080/foo?total=100'
 This is ApacheBench, Version 2.3 <$Revision: 1528965 $>
 Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
@@ -407,3 +423,4 @@ Percentage of the requests served within a certain time (ms)
   98%     28
   99%     35
  100%    108 (longest request)
+```
