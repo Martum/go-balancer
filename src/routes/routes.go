@@ -58,13 +58,13 @@ func initHandlers(reglas []config.Regla) []serversHandler {
 	for _, rule := range reglas {
 		if rule.Ruta == "*" {
 			r, _ := regexp.Compile(".*")
-			channel := make(chan RouterRequest, 1000)
+			channel := make(chan RouterRequest, 1000000)
 
 			go ServersHandler(channel, rule.Servers)
 			defaultHandler = serversHandler{pathRegEx: r, channel: channel}
 		} else {
 			r, _ := regexp.Compile("^" + rule.Ruta + ".*")
-			channel := make(chan RouterRequest, 1000)
+			channel := make(chan RouterRequest, 1000000)
 
 			go ServersHandler(channel, rule.Servers)
 			handlersList[i] = serversHandler{pathRegEx: r, channel: channel}
