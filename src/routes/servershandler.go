@@ -1,8 +1,10 @@
 package routes
 
 func ServersHandler(c chan RouterRequest, servers []string) {
-	availableServers := make(chan string, len(servers))
-	unavailableServers := make(chan string, len(servers))
+	availableServers := make(chan string, len(servers)+1)
+	unavailableServers := make(chan string, len(servers)+1)
+
+	initAvailableServers(availableServers, servers)
 
 	for {
 		msg := <-c
@@ -15,6 +17,12 @@ func ServersHandler(c chan RouterRequest, servers []string) {
 		case ServerUp:
 			addServer(msg.Meta, availableServers, unavailableServers)
 		}
+	}
+}
+
+func initAvailableServers(availableServers chan string, servers []string) {
+	for _, server := range servers {
+		availableServers <- server
 	}
 }
 
